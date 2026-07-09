@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: var(--font-outfit), system-ui, sans-serif;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-albert-sans), system-ui, sans-serif;
+    background-color: #FAF7E9;
+    color: #1A1A1A;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
 }
