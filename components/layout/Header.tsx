@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { Button } from '@/components/shared/Button'
 import { Container } from '@/components/shared/Container'
 import { productCategories } from '@/lib/product-categories'
-import { LoginModal } from '@/components/layout/LoginModal'
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -18,7 +17,6 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [productsOpen, setProductsOpen] = useState(false)
-  const [loginOpen, setLoginOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -41,7 +39,7 @@ export function Header() {
   return (
     <>
       {/* Top bar */}
-      <div className="bg-[#8B008B] text-xs">;
+      <div className="bg-teal text-xs">
         <Container>
           <div className="flex items-center justify-between py-2">
             <p className="text-white">
@@ -84,60 +82,45 @@ export function Header() {
               Home
             </Link>
 
-            {/* Products dropdown */}
-            <div ref={dropdownRef} className="relative">
-              <button
-                onClick={() => setProductsOpen(!productsOpen)}
-                onMouseEnter={() => setProductsOpen(true)}
-                className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-teal transition-colors"
-              >
-                Products
-                <svg
-                  className={`w-3.5 h-3.5 mt-0.5 transition-transform duration-200 ${
-                    productsOpen ? 'rotate-180' : ''
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {/* Products dropdown */}
+              <div ref={dropdownRef} className="relative">
+                <Link
+                  href="/products"
+                  className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-teal transition-colors"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  Products
+                </Link>
 
-              {productsOpen && (
-                <div
-                  onMouseLeave={() => setProductsOpen(false)}
-                  className="absolute left-1/2 -translate-x-1/2 top-full pt-3 animate-fade-in"
-                >
-                  <div className="bg-white rounded-2xl shadow-xl border border-border p-6 grid grid-cols-3 gap-x-8 gap-y-6 min-w-[600px]">
-                    {productCategories.map((category) => (
-                      <div key={category.href}>
-                        <Link
-                          href={category.href}
-                          onClick={() => setProductsOpen(false)}
-                          className="text-sm font-bold text-gray-900 hover:text-teal transition-colors"
-                        >
-                          {category.label}
-                        </Link>
-                        <ul className="mt-2 space-y-1">
-                          {category.items.map((item) => (
-                            <li key={item.href}>
-                              <Link
-                                href={item.href}
-                                onClick={() => setProductsOpen(false)}
-                                className="text-sm text-gray-500 hover:text-teal hover:underline transition-colors"
-                              >
-                                {item.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                {productsOpen && (
+                  <div
+                    onMouseLeave={() => setProductsOpen(false)}
+                    className="absolute left-1/2 -translate-x-1/2 top-full pt-3 animate-fade-in"
+                  >
+                    <div className="bg-white rounded-2xl shadow-xl border border-border p-6 grid grid-cols-3 gap-x-8 gap-y-6 min-w-[600px]">
+                      {productCategories.map((category) => (
+                        <div key={category.href}>
+                          <p className="text-sm font-bold text-gray-900 mb-2">
+                            {category.label}
+                          </p>
+                          <ul className="space-y-1">
+                            {category.items.map((item) => (
+                              <li key={item.href}>
+                                <Link
+                                  href={`/products/${item.href.split('/').pop()}`}
+                                  onClick={() => setProductsOpen(false)}
+                                  className="text-sm text-gray-500 hover:text-teal hover:underline transition-colors"
+                                >
+                                  {item.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
             {navLinks.map((link) => (
               <Link
@@ -152,9 +135,6 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Button onClick={() => setLoginOpen(true)} variant="ghost" size="sm">
-              Log in
-            </Button>
             <Button href="/order" size="sm">
               Order Now
             </Button>
@@ -190,38 +170,25 @@ export function Header() {
 
               {/* Mobile Products accordion */}
               <div className="px-3 py-2.5">
-                <button
-                  onClick={() => setProductsOpen(!productsOpen)}
+                <Link
+                  href="/products"
+                  onClick={() => setMenuOpen(false)}
                   className="flex items-center justify-between w-full text-sm font-semibold text-gray-700"
                 >
                   Products
-                  <svg
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      productsOpen ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                </Link>
                 {productsOpen && (
                   <div className="mt-3 space-y-4 pl-2">
                     {productCategories.map((category) => (
                       <div key={category.href}>
-                        <Link
-                          href={category.href}
-                          onClick={() => setMenuOpen(false)}
-                          className="text-sm font-bold text-gray-900 hover:text-teal transition-colors"
-                        >
+                        <p className="text-sm font-bold text-gray-900 mb-2">
                           {category.label}
-                        </Link>
+                        </p>
                         <ul className="mt-1.5 space-y-1 ml-2">
                           {category.items.map((item) => (
                             <li key={item.href}>
                               <Link
-                                href={item.href}
+                                href={`/products/${item.href.split('/').pop()}`}
                                 onClick={() => setMenuOpen(false)}
                                 className="text-sm text-gray-500 hover:text-teal transition-colors"
                               >
@@ -247,9 +214,6 @@ export function Header() {
                 </Link>
               ))}
               <div className="px-3 pt-2 space-y-2">
-                <Button onClick={() => { setLoginOpen(true); setMenuOpen(false) }} variant="ghost" size="sm" className="w-full">
-                  Log in
-                </Button>
                 <Button href="/order" size="sm" className="w-full">
                   Order Now
                 </Button>
@@ -260,8 +224,6 @@ export function Header() {
       </Container>
     </header>
 
-      {/* Login Modal */}
-      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
     </>
   )
 }

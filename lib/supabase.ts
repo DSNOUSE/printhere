@@ -35,6 +35,6 @@ export type Order = {
   file_name: string
   file_size: number
   status: string
-  stripe_session_id: string
+  paystack_reference: string | null
   created_at: string
 }

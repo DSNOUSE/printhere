@@ -6,6 +6,7 @@ import { supabase, type Product } from '@/lib/supabase'
 import { FileUploader } from '@/components/order/FileUploader'
 import { FilePreview } from '@/components/shared/FilePreview'
 import { Container } from '@/components/shared/Container'
+import { Button } from '@/components/shared/Button'
 
 type UploadedFile = {
   url: string
@@ -30,6 +31,7 @@ function OrderPageContent() {
   const searchParams = useSearchParams()
   const cancelled = searchParams.get('cancelled')
   const preselectedProductId = searchParams.get('product')
+  const reference = searchParams.get('reference')
 
   const [currentStep, setCurrentStep] = useState(0)
   const [products, setProducts] = useState<Product[]>([])
@@ -41,6 +43,8 @@ function OrderPageContent() {
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [orderStatus, setOrderStatus] = useState<{ id: string; status: string; product_name: string; quantity: number; total_price: number } | null>(null)
+  const [statusLoading, setStatusLoading] = useState(false)
 
   useEffect(() => {
     supabase
@@ -59,6 +63,16 @@ function OrderPageContent() {
         }
       })
   }, [preselectedProductId])
+
+  useEffect(() => {
+    if (!reference) return
+    setStatusLoading(true)
+    fetch(`/api/order-status?reference=${reference}`)
+      .then((r) => r.json())
+      .then((d) => setOrderStatus(d.order ?? null))
+      .catch(() => setOrderStatus(null))
+      .finally(() => setStatusLoading(false))
+  }, [reference])
 
   const totalPrice = selectedProduct ? selectedProduct.base_price * quantity : 0
 
@@ -88,9 +102,7 @@ function OrderPageContent() {
           customerName,
           customerEmail,
           productId: selectedProduct.id,
-          productName: selectedProduct.name,
           quantity,
-          unitPrice: selectedProduct.base_price,
           notes,
           fileUrl: uploadedFile.url,
           fileName: uploadedFile.name,
@@ -107,6 +119,60 @@ function OrderPageContent() {
       setError(err instanceof Error ? err.message : 'An error occurred')
       setIsSubmitting(false)
     }
+  }
+
+  if (reference) {
+    return (
+      <section className="py-16">
+        <Container className="max-w-2xl">
+          {statusLoading ? (
+            <div className="text-center py-20">
+              <div className="w-12 h-12 mx-auto rounded-xl bg-teal/10 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-teal animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              </div>
+              <p className="text-gray-500">Confirming your payment...</p>
+            </div>
+          ) : orderStatus?.status === 'paid' ? (
+            <div className="bg-white rounded-2xl border border-border p-8 text-center">
+              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Payment confirmed</h1>
+              <p className="text-gray-500 mt-2">Your order is confirmed and a receipt has been emailed to you.</p>
+              <div className="mt-6 text-left bg-cream rounded-xl p-5 space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-gray-500">Order</span><span className="font-medium text-gray-900">#{orderStatus.id.slice(0, 8).toUpperCase()}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Product</span><span className="font-medium text-gray-900">{orderStatus.product_name}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Quantity</span><span className="font-medium text-gray-900">{orderStatus.quantity}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Total paid</span><span className="font-bold text-teal">₦{orderStatus.total_price.toLocaleString()}</span></div>
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center mt-6">
+                <Button href="/order">Place another order</Button>
+                <Button href="/" variant="outline">Back to home</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-border p-8 text-center">
+              <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Payment not confirmed yet</h1>
+              <p className="text-gray-500 mt-2">If you completed payment, your receipt will arrive by email shortly. Otherwise you can try again.</p>
+              <div className="flex flex-wrap gap-3 justify-center mt-6">
+                <Button href="/order">Try again</Button>
+                <Button href="/contact" variant="outline">Contact us</Button>
+              </div>
+            </div>
+          )}
+        </Container>
+      </section>
+    )
   }
 
   return (
@@ -327,7 +393,7 @@ function OrderPageContent() {
                 {isSubmitting ? 'Redirecting to payment...' : `Pay ₦${totalPrice.toLocaleString()}`}
               </button>
               <p className="text-xs text-gray-400 text-center mt-3">
-                Secure payment via Stripe. You&apos;ll receive a confirmation email.
+                Secure payment via Paystack. You&apos;ll receive a confirmation email.
               </p>
             </div>
           )}

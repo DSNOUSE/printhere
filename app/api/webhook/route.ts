@@ -1,82 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import crypto from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendOrderConfirmation } from '@/lib/email'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-})
+export const runtime = 'nodejs'
 
+type PaystackEvent = {
+  event?: string
+  data?: { reference?: string; metadata?: { order_id?: string } }
+}
+
+// Verifies the Paystack webhook signature and fulfils paid orders idempotently.
 export async function POST(req: NextRequest) {
-  const body = await req.text()
-  const sig = req.headers.get('stripe-signature')
+  const rawBody = await req.text()
+  const signature = req.headers.get('x-paystack-signature')
+  const secret = process.env.PAYSTACK_SECRET_KEY
 
-  if (!sig) {
-    return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
+  if (!secret) {
+    console.error('Missing PAYSTACK_SECRET_KEY')
+    return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
   }
 
-  let event: Stripe.Event
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+  const expected = crypto.createHmac('sha512', secret).update(rawBody).digest('hex')
+  if (!signature || expected !== signature) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session
-      const orderId = session.metadata?.order_id
+  let event: PaystackEvent
+  try {
+    event = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  }
 
-      if (orderId) {
-        // Update order status
+  if (event.event === 'charge.success') {
+    const orderId = event.data?.metadata?.order_id || event.data?.reference
+
+    if (orderId) {
+      // Idempotency: only fulfil an order once.
+      const { data: existing } = await supabaseAdmin
+        .from('orders')
+        .select('id, status')
+        .eq('id', orderId)
+        .single()
+
+      if (existing && existing.status !== 'paid') {
         const { error: updateError } = await supabaseAdmin
           .from('orders')
-          .update({
+          .update({ 
             status: 'paid',
-            stripe_payment_intent: session.payment_intent as string,
+            paystack_reference: event.data?.reference || existing.id
           })
           .eq('id', orderId)
 
         if (updateError) {
           console.error('Failed to update order:', updateError)
-          break
-        }
+        } else {
+          const { data: order } = await supabaseAdmin
+            .from('orders')
+            .select('*')
+            .eq('id', orderId)
+            .single()
 
-        // Fetch order and send confirmation email
-        const { data: order } = await supabaseAdmin
-          .from('orders')
-          .select('*')
-          .eq('id', orderId)
-          .single()
-
-        if (order) {
-          try {
-            await sendOrderConfirmation(order)
-          } catch (emailErr) {
-            console.error('Failed to send confirmation email:', emailErr)
+          if (order) {
+            try {
+              await sendOrderConfirmation(order)
+            } catch (emailErr) {
+              console.error('Failed to send confirmation email:', emailErr)
+            }
           }
         }
       }
-      break
-    }
-
-    case 'checkout.session.expired': {
-      const session = event.data.object as Stripe.Checkout.Session
-      const orderId = session.metadata?.order_id
-
-      if (orderId) {
-        await supabaseAdmin
-          .from('orders')
-          .update({ status: 'cancelled' })
-          .eq('id', orderId)
-      }
-      break
     }
   }
 

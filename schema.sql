@@ -25,16 +25,15 @@ create table orders (
   file_name text not null,
   file_size int,
   status text not null default 'pending_payment',
-  stripe_session_id text,
-  stripe_payment_intent text,
+  paystack_reference text unique,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 
 -- Status options: pending_payment | paid | in_production | shipped | completed | cancelled
 
--- Index for looking up by stripe session
-create index orders_stripe_session_id_idx on orders(stripe_session_id);
+-- Index for looking up by paystack reference
+create index orders_paystack_reference_idx on orders(paystack_reference);
 create index orders_email_idx on orders(customer_email);
 
 -- Auto-update updated_at

@@ -1,123 +1,115 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Container } from '@/components/shared/Container'
-import { Button } from '@/components/shared/Button'
-import { productCategories } from '@/lib/product-categories'
+import { supabase } from '@/lib/supabase'
 
 type Props = {
-  params: Promise<{ slug: string[] }>
+  params: Promise<{ id: string }>
 }
 
-export default async function ProductCategoryPage({ params }: Props) {
-  const { slug } = await params
+export const revalidate = 60
 
-  // No slug or too deep
-  if (!slug || slug.length > 2) {
-    notFound()
-  }
+export default async function ProductDetailPage({ params }: Props) {
+  const { id } = await params
 
-  // Category overview (e.g. /products/business-cards)
-  if (slug.length === 1) {
-    const categorySlug = slug[0]
-    const category = productCategories.find((c) => {
-      const slugPart = c.href.split('/').pop()
-      return slugPart === categorySlug
-    })
+  const { data: product } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single()
 
-    if (!category) {
-      notFound()
-    }
+  if (!product) notFound()
 
-    return (
-      <section className="py-16">
-        <Container>
-          <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-            <Link href="/" className="hover:text-teal transition-colors">Home</Link>
-            <span>/</span>
-            <Link href="/products" className="hover:text-teal transition-colors">Products</Link>
-            <span>/</span>
-            <span className="text-gray-600">{category.label}</span>
-          </nav>
+  return (
+    <section className="py-16">
+      <Container>
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-10">
+          <Link href="/" className="hover:text-teal transition-colors">Home</Link>
+          <span>/</span>
+          <Link href="/products" className="hover:text-teal transition-colors">Products</Link>
+          <span>/</span>
+          <span className="text-gray-700">{product.name}</span>
+        </nav>
 
-          <div className="max-w-2xl mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">{category.label}</h1>
-            <p className="mt-3 text-gray-500 leading-relaxed">
-              Choose from our range of {category.label.toLowerCase()}.
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Product visual */}
+          <div className="bg-gradient-to-br from-teal/5 to-teal/10 rounded-3xl flex items-center justify-center min-h-[360px]">
+            <div className="text-teal/60">
+              <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {category.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group bg-white rounded-2xl border border-border p-6 hover:border-teal/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              >
-                <h3 className="font-semibold text-gray-900 group-hover:text-teal transition-colors">
-                  {item.label}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Starting from competitive prices
-                </p>
+          {/* Product info */}
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              {product.name}
+            </h1>
+            <p className="mt-3 text-gray-500 leading-relaxed text-lg">
+              {product.description}
+            </p>
+
+            <div className="mt-8">
+              <p className="text-sm text-gray-400">Starting from</p>
+              <p className="text-4xl font-bold text-teal mt-1">
+                ₦{product.base_price.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Specs */}
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center gap-3 text-sm">
+                <div className="w-10 h-10 rounded-xl bg-teal/10 text-teal flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Turnaround Time</p>
+                  <p className="text-gray-500">{product.turnaround_days} working days</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-sm">
+                <div className="w-10 h-10 rounded-xl bg-teal/10 text-teal flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Accepted Formats</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {product.accepted_formats.map((fmt: string) => (
+                      <span
+                        key={fmt}
+                        className="text-xs uppercase font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
+                      >
+                        {fmt}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href={`/order?product=${product.id}`} className="inline-flex items-center justify-center bg-teal text-white font-semibold px-8 py-3.5 rounded-full hover:bg-teal-light transition-colors">
+                Order Now
               </Link>
-            ))}
-          </div>
-        </Container>
-      </section>
-    )
-  }
+              <Link href="/contact" className="inline-flex items-center justify-center border-2 border-teal text-teal font-semibold px-8 py-3.5 rounded-full hover:bg-teal/5 transition-colors">
+                Request Quote
+              </Link>
+            </div>
 
-  // Subcategory detail (e.g. /products/business-cards/standard)
-  if (slug.length === 2) {
-    const categorySlug = slug[0]
-    const subcategorySlug = slug[1]
-
-    const category = productCategories.find((c) => {
-      const slugPart = c.href.split('/').pop()
-      return slugPart === categorySlug
-    })
-
-    if (!category) {
-      notFound()
-    }
-
-    const item = category.items.find((i) => {
-      const slugPart = i.href.split('/').pop()
-      return slugPart === subcategorySlug
-    })
-
-    if (!item) {
-      notFound()
-    }
-
-    return (
-      <section className="py-16">
-        <Container>
-          <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-            <Link href="/" className="hover:text-teal transition-colors">Home</Link>
-            <span>/</span>
-            <Link href="/products" className="hover:text-teal transition-colors">Products</Link>
-            <span>/</span>
-            <Link href={category.href} className="hover:text-teal transition-colors">{category.label}</Link>
-            <span>/</span>
-            <span className="text-gray-600">{item.label}</span>
-          </nav>
-
-          <div className="max-w-2xl mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">{item.label}</h1>
-            <p className="mt-3 text-gray-500 leading-relaxed">
-              Browse our range of {item.label.toLowerCase()} or get in touch for a custom quote.
+            <p className="mt-4 text-xs text-gray-400">
+              Need a custom order? <Link href="/contact" className="text-teal hover:underline">Contact us</Link> for bulk pricing and special requirements.
             </p>
           </div>
-
-          <div className="text-center py-20">
-            <p className="text-gray-400 mb-4">Product pricing and specifications coming soon.</p>
-            <Button href="/order" size="lg">Order Now</Button>
-          </div>
-        </Container>
-      </section>
-    )
-  }
-
-  notFound()
+        </div>
+      </Container>
+    </section>
+  )
 }

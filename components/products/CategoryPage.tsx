@@ -1,71 +1,47 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Container } from '@/components/shared/Container'
 import { Button } from '@/components/shared/Button'
-import { productCategories, type ProductCategory } from '@/lib/product-categories'
+import { productCategories } from '@/lib/product-categories'
+import { ProductCard } from './ProductCard'
 
-type Props = {
-  category?: ProductCategory
-  subcategory?: { label: string; href: string }
+const categoryImages: Record<string, string> = {
+  'Business Cards': '/images/art-two-3.jpg',
+  'Flyers & Leaflets': '/images/art-two-17.jpg',
+  'Posters & Banners': '/images/operator-printer.jpg',
+  'Booklets & Brochures': '/images/booklets-brochures.jpg',
+  'Large Format': '/images/operator-printer-v1.jpg',
+  'Stationery': '/images/stationery.jpg',
 }
 
-export function CategoryPage({ category, subcategory }: Props) {
-  // If viewing a subcategory
-  if (subcategory && category) {
+type Props = {
+  categorySlug?: string
+  subcategorySlug?: string
+}
+
+export function CategoryGrid({ categorySlug, subcategorySlug }: Props) {
+  // If viewing a specific category
+  if (categorySlug && !subcategorySlug) {
+    const category = productCategories.find(c => c.href.endsWith(categorySlug))
+    if (!category) return null
+
     return (
-      <section className="py-16">
+      <section className="py-20">
         <Container>
-          <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-            <Link href="/" className="hover:text-teal transition-colors">Home</Link>
-            <span>/</span>
-            <Link href="/products" className="hover:text-teal transition-colors">Products</Link>
-            <span>/</span>
-            <Link href={category.href} className="hover:text-teal transition-colors">{category.label}</Link>
-            <span>/</span>
-            <span className="text-gray-600">{subcategory.label}</span>
-          </nav>
-
           <div className="max-w-2xl mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">{subcategory.label}</h1>
-            <p className="mt-3 text-gray-500 leading-relaxed">
-              Browse our range of {subcategory.label.toLowerCase()} or get in touch for a custom quote.
-            </p>
-          </div>
-
-          <div className="text-center py-20">
-            <p className="text-gray-400 mb-4">Product pricing and specifications coming soon.</p>
-            <Button href="/order" size="lg">Order Now</Button>
-          </div>
-        </Container>
-      </section>
-    )
-  }
-
-  // If viewing a category overview
-  if (category) {
-    return (
-      <section className="py-16">
-        <Container>
-          <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-            <Link href="/" className="hover:text-teal transition-colors">Home</Link>
-            <span>/</span>
-            <Link href="/products" className="hover:text-teal transition-colors">Products</Link>
-            <span>/</span>
-            <span className="text-gray-600">{category.label}</span>
-          </nav>
-
-          <div className="max-w-2xl mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">{category.label}</h1>
-            <p className="mt-3 text-gray-500 leading-relaxed">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              {category.label}
+            </h2>
+            <p className="mt-3 text-gray-500">
               Choose from our range of {category.label.toLowerCase()}.
             </p>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {category.items.map((item) => (
+            {category.items.map(item => (
               <Link
                 key={item.href}
-                href={item.href}
-                className="group bg-white rounded-2xl border border-border p-6 hover:border-teal/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                href={`/products/${item.href.split('/').pop()}`}
+                className="group bg-white rounded-2xl border border-border p-6 hover:border-teal/30 hover:shadow-lg transition-all duration-300"
               >
                 <h3 className="font-semibold text-gray-900 group-hover:text-teal transition-colors">
                   {item.label}
@@ -81,38 +57,79 @@ export function CategoryPage({ category, subcategory }: Props) {
     )
   }
 
-  // Fallback: all categories overview
-  return (
-    <section className="py-16">
-      <Container>
-        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-          <Link href="/" className="hover:text-teal transition-colors">Home</Link>
-          <span>/</span>
-          <span className="text-gray-600">Products</span>
-        </nav>
+  // If viewing a subcategory
+  if (categorySlug && subcategorySlug) {
+    const category = productCategories.find(c => c.href.endsWith(categorySlug))
+    if (!category) return null
 
-        <div className="max-w-2xl mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Our Products</h1>
-          <p className="mt-3 text-gray-500 leading-relaxed">
-            Premium printing for every need. Browse our categories below.
+    const subcategory = category.items.find(item => item.href.endsWith(subcategorySlug))
+    if (!subcategory) return null
+
+    return (
+      <section className="py-20">
+        <Container>
+          <div className="max-w-2xl mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              {subcategory.label}
+            </h2>
+            <p className="mt-3 text-gray-500">
+              Browse our range of {subcategory.label.toLowerCase()} or get in touch for a custom quote.
+            </p>
+          </div>
+          <div className="text-center py-20">
+            <p className="text-gray-400 mb-4">Product pricing and specifications coming soon.</p>
+            <Button href="/order" size="lg">Order Now</Button>
+          </div>
+        </Container>
+      </section>
+    )
+  }
+
+  // Default: show all categories
+  return (
+    <section className="py-20">
+      <Container>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            Explore Our Products
+          </h2>
+          <p className="mt-3 text-gray-500 max-w-lg mx-auto">
+            Everything you need to make a great impression — from business essentials to large-format prints.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {productCategories.map((cat) => (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+          {productCategories.map(cat => (
             <Link
               key={cat.href}
-              href={cat.href}
-              className="group bg-white rounded-2xl border border-border p-6 hover:border-teal/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              href={`/products/${cat.href.split('/').pop()}`}
+              className="group"
             >
-              <h3 className="font-semibold text-gray-900 group-hover:text-teal transition-colors">
-                {cat.label}
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {cat.items.length} options available
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-teal/5">
+                <Image
+                  src={categoryImages[cat.label] || '/images/art-two-38.jpg'}
+                  alt={cat.label}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
+                  <p className="text-lg font-bold text-white group-hover:scale-110 transition-transform duration-300">
+                    {cat.label}
+                  </p>
+                  <p className="text-sm text-gray-200 mt-1">{cat.items.length} options</p>
+                </div>
+              </div>
+              <p className="mt-3 text-base font-semibold text-teal flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
+                Shop {cat.label}
+                <span className="text-lg">›</span>
               </p>
             </Link>
           ))}
+        </div>
+        <div className="text-center mt-10">
+          <Button href="/products" size="lg">
+            View All Products
+          </Button>
         </div>
       </Container>
     </section>
