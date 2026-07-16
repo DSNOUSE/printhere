@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Product } from '@/lib/supabase'
 
 type Props = {
@@ -39,7 +40,7 @@ const productIcons: Record<string, JSX.Element> = {
 }
 
 const defaultIcon = (
-  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
   </svg>
 )
@@ -47,44 +48,43 @@ const defaultIcon = (
 export function ProductCard({ product }: Props) {
   return (
     <Link
-      href={`/products/${product.id}`}
-      className="group bg-white rounded-2xl border border-border overflow-hidden hover:border-teal/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+      href={`/products/${product.category_id}/${product.slug}`}
+      className="group bg-white rounded-2xl border-2 border-gray-100 hover:border-teal/20 hover:shadow-xl transition-all duration-300 overflow-hidden"
     >
-      {/* Icon area */}
-      <div className="h-44 bg-gradient-to-br from-teal/5 to-teal/10 flex items-center justify-center text-teal group-hover:from-teal/10 group-hover:to-teal/20 transition-colors duration-300">
-        {productIcons[product.name] || defaultIcon}
+      {/* Image area with placeholder */}
+      <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
+        {product.image_url ? (
+          <Image
+            src={product.image_url}
+            alt={product.name}
+            width={400}
+            height={400}
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="text-gray-300 group-hover:text-teal/30 transition-colors duration-300">
+            {productIcons[product.name] || defaultIcon}
+          </div>
+        )}
       </div>
 
       {/* Content */}
-      <div className="p-5">
-        <h3 className="font-semibold text-gray-900 group-hover:text-teal transition-colors">
-          {product.name}
-        </h3>
-        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>
-
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/60">
-          <div>
-            <p className="text-xs text-gray-400">From</p>
-            <p className="text-lg font-bold text-teal">₦{product.base_price.toLocaleString()}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-400">{product.turnaround_days} day turnaround</p>
-            <div className="flex gap-1 mt-1 justify-end">
-              {product.accepted_formats.slice(0, 3).map((fmt) => (
-                <span
-                  key={fmt}
-                  className="text-[10px] uppercase font-medium bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded"
-                >
-                  {fmt}
-                </span>
-              ))}
-              {product.accepted_formats.length > 3 && (
-                <span className="text-[10px] text-gray-400">+{product.accepted_formats.length - 3}</span>
-              )}
-            </div>
+        <div className="p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-teal transition-colors">
+            {product.name}
+          </h3>
+          <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+            {product.description}
+          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-teal">
+              ₦{product.base_price.toLocaleString()}
+            </p>
+            <span className="text-sm text-gray-500">
+              {product.turnaround_days} days
+            </span>
           </div>
         </div>
-      </div>
     </Link>
   )
 }

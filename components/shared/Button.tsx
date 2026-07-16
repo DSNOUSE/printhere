@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 type ButtonProps = {
   children: React.ReactNode
-  variant?: 'primary' | 'outline' | 'ghost'
+  variant?: 'primary' | 'outline' | 'ghost' | 'magenta'
   size?: 'sm' | 'md' | 'lg'
   href?: string
   className?: string
@@ -27,6 +27,7 @@ export function Button({
     primary: 'bg-teal text-white hover:bg-teal-light active:bg-teal-dark',
     outline: 'border-2 border-teal text-teal hover:bg-teal hover:text-white',
     ghost: 'bg-white/80 text-gray-700 hover:bg-white hover:shadow-sm border border-border',
+    magenta: 'bg-magenta text-white hover:bg-magenta/90 active:bg-magenta-dark',
   }
 
   const sizes = {

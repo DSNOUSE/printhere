@@ -17,6 +17,11 @@ const config: Config = {
           light: '#1A6269',
           dark: '#0F3A3F',
         },
+        magenta: {
+          DEFAULT: '#8B1A5C',
+          light: '#9D2A6C',
+          dark: '#6B1248',
+        },
         border: '#E5E0CC',
       },
       keyframes: {

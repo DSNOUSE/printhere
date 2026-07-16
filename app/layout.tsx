@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { Albert_Sans } from 'next/font/google'
 import './globals.css'
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
+import { SiteChrome } from '@/components/layout/SiteChrome'
 
 const albertSans = Albert_Sans({ subsets: ['latin'], variable: '--font-albert-sans' })
 
@@ -15,9 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={albertSans.variable}>
       <body className={`${albertSans.className} bg-cream`}>
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   )

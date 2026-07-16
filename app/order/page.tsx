@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { supabase, type Product } from '@/lib/supabase'
 import { FileUploader } from '@/components/order/FileUploader'
 import { FilePreview } from '@/components/shared/FilePreview'
@@ -237,15 +238,19 @@ function OrderPageContent() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {products.map((product) => (
-                  <button
+                  <Link
                     key={product.id}
-                    onClick={() => setSelectedProduct(product)}
+                    href={`/products/${product.category_id}/${product.slug}`}
                     className={`
-                      text-left p-4 rounded-xl border-2 transition-all
+                      block text-left p-4 rounded-xl border-2 transition-all
                       ${selectedProduct?.id === product.id
                         ? 'border-teal bg-teal/5'
-                        : 'border-border hover:border-teal/30'}
+                        : 'border-border hover:border-teal/30 hover:shadow-sm'}
                     `}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setSelectedProduct(product)
+                    }}
                   >
                     <p className="font-medium text-gray-900">{product.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
@@ -253,7 +258,7 @@ function OrderPageContent() {
                       from ₦{product.base_price.toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-400">{product.turnaround_days} day turnaround</p>
-                  </button>
+                  </Link>
                 ))}
               </div>
 

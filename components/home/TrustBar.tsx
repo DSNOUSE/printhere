@@ -20,7 +20,7 @@ const values = [
   {
     icon: '/images/icons/secure-payment.png',
     title: 'Secure Payments',
-    description: 'Powered by Stripe for safe checkout',
+    description: 'Powered by Paystack for safe checkout',
   },
 ]
 
@@ -35,9 +35,9 @@ export function TrustBar() {
                 <Image
                   src={item.icon}
                   alt={item.title}
-                  width={36}
-                  height={36}
-                  className="w-9 h-9 object-contain"
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 object-contain"
                 />
               </div>
               <div>

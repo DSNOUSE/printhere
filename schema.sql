@@ -32,6 +32,24 @@ create table orders (
 
 -- Status options: pending_payment | paid | in_production | shipped | completed | cancelled
 
+-- Enable Row Level Security
+alter table products enable row level security;
+alter table categories enable row level security;
+alter table orders enable row level security;
+
+-- RLS Policies for products (public read, admin write)
+create policy "Public can view products" on products for select using (active = true);
+create policy "Admins can manage products" on products for all using (auth.role() = 'authenticated');
+
+-- RLS Policies for categories (public read, admin write)
+create policy "Public can view categories" on categories for select using (active = true);
+create policy "Admins can manage categories" on categories for all using (auth.role() = 'authenticated');
+
+-- RLS Policies for orders (insert for customers, all for authenticated)
+create policy "Anyone can create orders" on orders for insert with check (true);
+create policy "Customers can view own orders" on orders for select using (customer_email = auth.jwt() ->> 'email');
+create policy "Admins can manage all orders" on orders for all using (auth.role() = 'authenticated');
+
 -- Index for looking up by paystack reference
 create index orders_paystack_reference_idx on orders(paystack_reference);
 create index orders_email_idx on orders(customer_email);
@@ -50,10 +68,10 @@ create trigger orders_updated_at
   for each row execute function update_updated_at();
 
 -- Seed some products
-insert into products (name, description, base_price, turnaround_days) values
-  ('Business Cards', '400gsm silk laminated, full colour both sides', 15000.00, 3),
-  ('Flyers A5', '130gsm gloss, full colour single sided', 20000.00, 4),
-  ('Roller Banner', '850 x 2000mm with aluminium stand', 45000.00, 5),
-  ('Poster A1', '170gsm silk, full colour', 12000.00, 3),
-  ('Booklets A4', 'Saddle stitched, full colour throughout', 35000.00, 7),
-  ('Canvas Print', 'Gallery wrapped, ready to hang', 27000.00, 6);
+insert into products (name, description, base_price, turnaround_days, slug) values
+  ('Business Cards', '400gsm silk laminated, full colour both sides', 15000.00, 3, 'business-cards-standard'),
+  ('Flyers A5', '130gsm gloss, full colour single sided', 20000.00, 4, 'flyers-a5'),
+  ('Roller Banner', '850 x 2000mm with aluminium stand', 45000.00, 5, 'roller-banner'),
+  ('Poster A1', '170gsm silk, full colour', 12000.00, 3, 'poster-a1'),
+  ('Booklets A4', 'Saddle stitched, full colour throughout', 35000.00, 7, 'booklets-a4'),
+  ('Canvas Print', 'Gallery wrapped, ready to hang', 27000.00, 6, 'canvas-print');

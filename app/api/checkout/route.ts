@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-server'
 
 // Creates an order (with a server-computed price) and initializes a Paystack
 // transaction. The order id is used as the Paystack reference so the webhook
