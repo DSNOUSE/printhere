@@ -43,8 +43,19 @@ export default async function ProductsPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile category filter */}
+          <div className="lg:hidden mb-4">
+            <select className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-teal focus:outline-none text-sm">
+              <option value="">All Categories</option>
+              {categoriesWithCount.map((category) => (
+                <option key={category.id} value={category.slug}>
+                  {category.name} ({category.product_count})
+                </option>
+              ))}
+            </select>
+          </div>
           {/* Sidebar filters */}
-          <aside className="lg:w-64 flex-shrink-0">
+          <aside className="hidden lg:block lg:w-64 flex-shrink-0">
             <div className="lg:sticky lg:top-24 space-y-6">
               {/* Categories */}
               <div>

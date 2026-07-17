@@ -102,7 +102,7 @@ export function Hero() {
           </div>
 
           {/* Navigation arrows positioned to the right */}
-          <div className="absolute right-8 sm:right-12 lg:right-20 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+          <div className="absolute right-4 sm:right-8 lg:right-20 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
             <button
               onClick={prevSlide}
               className="w-12 h-12 rounded-full border-2 border-gray-900 flex items-center justify-center hover:bg-gray-900 hover:text-white transition-colors"

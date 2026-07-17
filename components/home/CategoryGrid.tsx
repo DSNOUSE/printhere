@@ -31,7 +31,7 @@ export async function CategoryGrid() {
             Everything you need to make a great impression — from business essentials to large-format prints.
           </p>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {categories?.map((category) => (
             <Link
               key={category.id}

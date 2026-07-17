@@ -59,22 +59,22 @@ export function Header() {
       <div className="bg-gray-900 text-xs relative z-[60]">
         <Container>
           <div className="flex items-center justify-between py-2.5">
-            <div className="flex items-center gap-4">
-              <span className="text-gray-300">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-gray-300 text-xs sm:text-sm">
                 🇳🇬 <span className="text-white font-medium">Nigeria</span>
               </span>
-              <Link href="/sample-pack" className="hidden sm:inline-flex items-center gap-1.5 text-white hover:text-teal transition-colors">
+              <Link href="/sample-pack" className="hidden sm:inline-flex items-center gap-1.5 text-white hover:text-teal transition-colors text-xs sm:text-sm">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
                 Free Sample Pack
               </Link>
-              <span className="hidden lg:inline text-gray-400">
+              <span className="hidden lg:inline text-gray-400 text-xs">
                 Free delivery on orders over ₦50,000
               </span>
             </div>
-            <div className="flex items-center gap-4">
-              <Link href="/help" className="text-gray-300 hover:text-white transition-colors">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Link href="/help" className="hidden sm:block text-gray-300 hover:text-white transition-colors text-xs sm:text-sm">
                 Help & FAQs
               </Link>
               <LoginPopup trigger="button" />
@@ -226,7 +226,7 @@ export function Header() {
 
         {/* Mobile Nav */}
         {menuOpen && (
-          <div className="md:hidden border-t border-border pb-4 animate-fade-in">
+          <div className="lg:hidden border-t border-border pb-4 animate-fade-in">
             <nav className="flex flex-col gap-1 pt-3">
               {/* Mobile Products accordion */}
               <div className="px-3 py-2.5">
