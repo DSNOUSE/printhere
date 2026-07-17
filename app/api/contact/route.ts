@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,9 +21,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
     }
 
+    const resend = getResendClient()
+    if (!resend || !process.env.EMAIL_FROM) {
+      console.warn('Resend not configured, contact form unavailable')
+      return NextResponse.json({ error: 'Email service not configured' }, { status: 503 })
+    }
+
     await resend.emails.send({
-      from: process.env.EMAIL_FROM!,
-      to: process.env.EMAIL_FROM!, // Send to the business email
+      from: process.env.EMAIL_FROM,
+      to: process.env.EMAIL_FROM, // Send to the business email
       replyTo: email,
       subject: `[PrintHere Contact] ${subject}`,
       html: `

@@ -1,11 +1,22 @@
 import { Resend } from 'resend'
 import type { Order } from '@/lib/supabase'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function sendOrderConfirmation(order: Order) {
+  const resend = getResendClient()
+  if (!resend || !process.env.EMAIL_FROM) {
+    console.warn('Resend not configured, skipping email')
+    return
+  }
+
   await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+    from: process.env.EMAIL_FROM,
     to: order.customer_email,
     subject: `Order confirmed — ${order.product_name} (#${order.id.slice(0, 8).toUpperCase()})`,
     html: `
@@ -48,8 +59,14 @@ export async function sendOrderConfirmation(order: Order) {
 }
 
 export async function sendOrderStatusUpdate(order: Order, message: string) {
+  const resend = getResendClient()
+  if (!resend || !process.env.EMAIL_FROM) {
+    console.warn('Resend not configured, skipping email')
+    return
+  }
+
   await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+    from: process.env.EMAIL_FROM,
     to: order.customer_email,
     subject: `Order update — #${order.id.slice(0, 8).toUpperCase()}`,
     html: `
