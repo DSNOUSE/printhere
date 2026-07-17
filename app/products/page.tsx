@@ -38,7 +38,7 @@ export default async function ProductsPage() {
             All Products
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl">
-            Explore our full range of premium printing services. From business cards to large-format prints, we've got you covered.
+            Explore our full range of premium printing services. From business cards to large-format prints, we&apos;ve got you covered.
           </p>
         </div>
 
